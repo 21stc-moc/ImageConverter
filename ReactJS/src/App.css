@@ -1,0 +1,15 @@
+.ant-layout-content {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 26px;
+  min-height: calc(100vh - 64px - 70px);
+}
+
+.convert-action {
+  margin-top: 10px;
+  padding-left: 10px;
+  border-radius: 10px;
+  background-color: #ffffff;
+  border: 1px solid #aa3bff;
+}
