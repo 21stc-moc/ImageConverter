@@ -1,6 +1,9 @@
 import "./App.css";
 import { ConfigProvider, Layout, Menu } from "antd";
+import { FaCloudArrowDown } from "react-icons/fa6";
 import { Outlet } from "react-router";
+import ConvertedList from "./pages/converted-list";
+import viVN from "antd/es/locale/vi_VN";
 
 const items = [
   {
@@ -18,6 +21,7 @@ function MyPage() {
 
   return (
     <ConfigProvider
+      locale={viVN}
       theme={{
         token: {
           colorPrimary: "#aa3bff",
@@ -41,14 +45,15 @@ function MyPage() {
               width: "100%",
               display: "flex",
               alignItems: "center",
+              justifyContent: "space-between",
             }}>
             <div className="demo-logo" />
             <Menu
               mode="horizontal"
-              defaultSelectedKeys={["1"]}
               items={items}
               style={{ flex: 1, minWidth: 0, justifyContent: "center" }}
             />
+            <ConvertedList />
           </Layout.Header>
           <Layout.Content>
             <Outlet />
