@@ -1,8 +1,13 @@
+.ant-layout-header {
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
 .ant-layout-content {
   width: 1126px;
   max-width: 100%;
   margin: 0 auto;
-  padding: 26px;
+  padding: 10px;
   min-height: calc(100vh - 64px - 70px);
 }
 
@@ -12,4 +17,10 @@
   border-radius: 10px;
   background-color: #ffffff;
   border: 1px solid #aa3bff;
+}
+
+@media (min-width: 1024px) {
+  .ant-layout-content {
+    padding: 26px;
+  }
 }

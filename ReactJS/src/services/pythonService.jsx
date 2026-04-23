@@ -17,6 +17,12 @@ export const pythonService = {
     });
   },
 
+  ocrProcess(body, params) {
+    return axios.post(`${baseURL}/ocr`, body, {
+      params: params,
+    });
+  },
+
   download(params) {
     return axios.get(`${baseURL}/download`, {
       responseType: "blob",

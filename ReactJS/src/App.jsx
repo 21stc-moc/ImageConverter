@@ -1,23 +1,24 @@
 import "./App.css";
 import { ConfigProvider, Layout, Menu } from "antd";
 import { FaCloudArrowDown } from "react-icons/fa6";
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import ConvertedList from "./pages/converted-list";
 import viVN from "antd/es/locale/vi_VN";
 
 const items = [
   {
-    key: "1",
-    label: "Chuyển đổi định dạng",
+    key: "/convert-img",
+    label: "Chuyển đổi",
   },
   {
-    key: "2",
+    key: "/ocr",
     label: "Ảnh sang chuỗi",
   },
 ];
 
 function MyPage() {
   const currentYear = new Date().getFullYear();
+  const navigate = useNavigate();
 
   return (
     <ConfigProvider
@@ -51,6 +52,7 @@ function MyPage() {
             <Menu
               mode="horizontal"
               items={items}
+              onClick={(e) => navigate(e.key)}
               style={{ flex: 1, minWidth: 0, justifyContent: "center" }}
             />
             <ConvertedList />

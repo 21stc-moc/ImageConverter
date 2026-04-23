@@ -1,9 +1,21 @@
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, HTTPException
+from module.ocr_module import OCRModule
 from fastapi.responses import StreamingResponse
 from PIL import Image
 import io
 import zipfile
 import resvg_py
+
+
+# Khởi tạo 1 lần, tái sử dụng nhiều lần (engine được cache).
+# prefer_paddle_for_cjk=False → dùng EasyOCR cho cả 4 ngôn ngữ (vi/en/ja/ch/ch_tra).
+# Không cần PaddleOCR/PaddlePaddle → venv gọn, không dính lỗi mypyc.
+ocr = OCRModule(use_gpu=False, prefer_paddle_for_cjk=False)
+
+
+def _svg_bytes_to_png_bytes(svg_bytes: bytes) -> bytes:
+    """Rasterize SVG bytes → PNG bytes (dùng chung cho convert và OCR)."""
+    return bytes(resvg_py.svg_to_bytes(svg_string=svg_bytes.decode("utf-8")))
 
 
 def _is_svg(file: UploadFile) -> bool:
@@ -17,7 +29,7 @@ def _load_image(file: UploadFile) -> Image.Image:
     if _is_svg(file):
         # PIL không đọc được SVG → rasterize sang PNG bằng resvg (Rust binding, không cần Cairo/lxml)
         svg_bytes = file.file.read()
-        png_bytes = bytes(resvg_py.svg_to_bytes(svg_string=svg_bytes.decode("utf-8")))
+        png_bytes = _svg_bytes_to_png_bytes(svg_bytes)
         return Image.open(io.BytesIO(png_bytes)).convert("RGBA")
 
     return Image.open(file.file).convert("RGBA")
@@ -71,6 +83,70 @@ def convert(media_format, media_type, file: UploadFile = File(...)):
     except Exception as e:
         print("ERROR:", e)
         raise
+
+
+def ocr_multi(lang: str, files: list[UploadFile] = File(...)):
+    """
+    Nhận diện văn bản từ tối đa 5 ảnh cùng lúc.
+    Tham số:
+        lang  : một trong {vi, en, ja, ch, ch_tra}
+        files : list UploadFile (tối đa 5)
+    Trả về:
+        {
+            "lang": "...",
+            "count": N,
+            "results": [
+                {"filename": "...", "text": "...", "error": None | "..."},
+                ...
+            ]
+        }
+    """
+    # Validate ngôn ngữ sớm để trả lỗi HTTP rõ ràng
+    if lang not in OCRModule.SUPPORTED_LANGS:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Ngôn ngữ '{lang}' không hỗ trợ. "
+                f"Các lựa chọn: {list(OCRModule.SUPPORTED_LANGS)}"
+            ),
+        )
+
+    if not files:
+        raise HTTPException(status_code=400, detail="Chưa có file nào được gửi lên.")
+
+    if len(files) > OCRModule.MAX_IMAGES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Tối đa {OCRModule.MAX_IMAGES} ảnh mỗi lần (nhận được {len(files)}).",
+        )
+
+    # Đọc bytes từng file, SVG thì rasterize trước
+    items: list[tuple[str, bytes]] = []
+    for f in files:
+        try:
+            raw = f.file.read()
+            if _is_svg(f):
+                raw = _svg_bytes_to_png_bytes(raw)
+            items.append((f.filename or "unknown", raw))
+        except Exception as e:
+            # Ghi nhận lỗi đọc file nhưng vẫn tiếp tục các file còn lại
+            print(f"READ ERROR {f.filename}: {e}")
+            items.append((f.filename or "unknown", b""))
+
+    try:
+        results = ocr.recognize_batch_bytes(items, lang=lang)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print("OCR ERROR:", e)
+        raise HTTPException(status_code=500, detail=f"OCR thất bại: {e}")
+
+    return {
+        "lang": lang,
+        "count": len(results),
+        "results": results,
+    }
+
 
 def convert_multi(media_format, files: list[UploadFile] = File(...)):
     try:

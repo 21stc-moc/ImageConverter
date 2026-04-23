@@ -5,6 +5,7 @@ import {
   Dropdown,
   Flex,
   List,
+  Modal,
   Popconfirm,
   Tag,
   Typography,
@@ -18,12 +19,15 @@ import {
 } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAll, removeConvertedFile } from "../store/convertedFilesSlice";
+import { useState } from "react";
 
 function ConvertedList() {
   const { message } = App.useApp();
   const convertedItems = useSelector((state) => state.convertedFiles.items);
 
   const dispatch = useDispatch();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const formatBytes = (bytes) => {
     if (!bytes) return "0 B";
@@ -69,30 +73,38 @@ function ConvertedList() {
   };
 
   return (
-    <Dropdown
-      trigger={["click"]}
-      popupRender={() => (
+    <>
+      <Badge count={convertedItems.length} overflowCount={10}>
+        <Button
+          color="primary"
+          variant="outlined"
+          icon={<FaCloudArrowDown />}
+          onClick={() => setIsModalOpen(true)}
+        />
+      </Badge>
+      <Modal
+        open={isModalOpen}
+        title="Danh sách đã chuyển đổi"
+        onCancel={() => setIsModalOpen(false)}
+        footer={() => (
+          <Popconfirm
+            title="Xoá tất cả?"
+            description="Toàn bộ file đã chuyển đổi sẽ bị xoá khỏi danh sách."
+            okText="Xoá"
+            cancelText="Huỷ"
+            onConfirm={onClearAll}>
+            <Button
+              danger
+              type="dashed"
+              icon={<FaTrash />}
+              disabled={convertedItems.length == 0}
+            />
+          </Popconfirm>
+        )}>
         <List
           bordered
           dataSource={convertedItems}
           itemLayout="vertical"
-          header={
-            <Flex align="center" justify="space-between">
-              <Typography.Title level={5} style={{ margin: 0 }}>
-                Danh sách đã chuyển đổi
-              </Typography.Title>
-              {convertedItems.length > 0 && (
-                <Popconfirm
-                  title="Xoá tất cả?"
-                  description="Toàn bộ file đã chuyển đổi sẽ bị xoá khỏi danh sách."
-                  okText="Xoá"
-                  cancelText="Huỷ"
-                  onConfirm={onClearAll}>
-                  <Button danger type="dashed" icon={<FaTrash />} />
-                </Popconfirm>
-              )}
-            </Flex>
-          }
           style={{ backgroundColor: "#fff", minWidth: 400 }}
           renderItem={(item) => (
             <List.Item
@@ -140,15 +152,8 @@ function ConvertedList() {
             </List.Item>
           )}
         />
-      )}>
-      <Badge count={convertedItems.length} overflowCount={10}>
-        <Button
-          color="primary"
-          variant="outlined"
-          icon={<FaCloudArrowDown />}
-        />
-      </Badge>
-    </Dropdown>
+      </Modal>
+    </>
   );
 }
 

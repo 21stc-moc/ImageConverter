@@ -3,6 +3,7 @@ import {
   Button,
   Empty,
   Flex,
+  Grid,
   List,
   Popconfirm,
   Select,
@@ -22,6 +23,8 @@ import {
 import { pythonService } from "../services/pythonService";
 import { addConvertedFile } from "../store/convertedFilesSlice";
 import { useDispatch } from "react-redux";
+
+const { useBreakpoint } = Grid;
 
 const fileTypes = [
   {
@@ -60,6 +63,7 @@ const genId = () =>
 function ImageConvert() {
   const { message } = App.useApp();
 
+  const screens = useBreakpoint();
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState(false);
@@ -197,10 +201,16 @@ function ImageConvert() {
 
       {fileList.length > 0 && (
         <Flex align="center" justify="space-between" className="convert-action">
-          <Typography.Text>Đã thêm {fileList.length} tệp</Typography.Text>
-          <Flex align="center" gap="large">
+          {!screens.xs && (
+            <Typography.Text>Đã thêm {fileList.length} tệp</Typography.Text>
+          )}
+          <Flex
+            align="center"
+            flex={1}
+            justify={screens.xs ? "space-between" : "end"}
+            gap="large">
             <Flex align="center" gap="small">
-              Chuyển sang:
+              {!screens.xs && <Typography.Text>Chuyển sang:</Typography.Text>}
               <Select
                 value={convertType}
                 onChange={(e) => setConvertType(e)}

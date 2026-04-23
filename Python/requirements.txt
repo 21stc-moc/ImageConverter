@@ -4,3 +4,13 @@ Pillow
 python-multipart
 resvg-py
 mangum
+
+# OCR engine — chỉ dùng EasyOCR cho cả 4 ngôn ngữ (vi/en/ja/ch_sim/ch_tra)
+easyocr>=1.7.0,<2.0
+
+# Image handling (kéo theo bởi easyocr nhưng ghi rõ cho chắc)
+opencv-python-headless>=4.6.0
+numpy>=1.23.0
+
+# Pin charset_normalizer tránh xung đột mypyc/compiled extension
+charset-normalizer>=3.3.2,<3.5

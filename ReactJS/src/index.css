@@ -41,10 +41,10 @@
 /* -------------------------------------------------------------------------- */
 ::-moz-selection {
   color: #ffffe6;
-  background: #62809d;
+  background: rgba(170, 59, 255, 0.5);
 }
 
 ::selection {
   color: #ffffe6;
-  background: #62809d;
+  background: rgba(170, 59, 255, 0.5);
 }
