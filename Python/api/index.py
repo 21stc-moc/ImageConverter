@@ -4,7 +4,7 @@ import service
 
 app = FastAPI()
 #Enable CORS
-origins = [ "http://localhost:5173", "http://192.168.2.197:2100" ]
+origins = [ "http://localhost:5173", "https://21stc-moc.github.io" ]
 
 app.add_middleware(
     CORSMiddleware,
