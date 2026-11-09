@@ -18,7 +18,11 @@ import {
   FaTrash,
 } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
-import { clearAll, removeConvertedFile } from "../store/convertedFilesSlice";
+import {
+  clearConvertedFiles,
+  deleteConvertedFile,
+} from "../store/convertedFilesSlice";
+import { downloadConvertedFile, formatBytes } from "../utils/download";
 import { useState } from "react";
 
 function ConvertedList() {
@@ -29,48 +33,19 @@ function ConvertedList() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const formatBytes = (bytes) => {
-    if (!bytes) return "0 B";
-    const units = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
-  };
-
   const onDownload = (item) => {
     try {
-      const link = document.createElement("a");
-      link.href = item.url;
-      link.setAttribute("download", item.name);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      // KHÔNG revoke URL ở đây — để user còn tải lại lần sau
+      downloadConvertedFile(item);
     } catch (error) {
       console.error("Lỗi khi tải file:", error);
       message.error("Tải file thất bại");
     }
   };
 
-  const onRemoveItem = (item) => {
-    // Giải phóng object URL trước khi remove khỏi store để tránh memory leak
-    try {
-      window.URL.revokeObjectURL(item.url);
-    } catch (e) {
-      console.error(e);
-    }
-    dispatch(removeConvertedFile(item.id));
-  };
+  // Thunk tự giải phóng object URL và xoá blob khỏi IndexedDB
+  const onRemoveItem = (item) => dispatch(deleteConvertedFile(item));
 
-  const onClearAll = () => {
-    convertedItems.forEach((item) => {
-      try {
-        window.URL.revokeObjectURL(item.url);
-      } catch (e) {
-        console.error(e);
-      }
-    });
-    dispatch(clearAll());
-  };
+  const onClearAll = () => dispatch(clearConvertedFiles());
 
   return (
     <>
@@ -109,7 +84,7 @@ function ConvertedList() {
           renderItem={(item) => (
             <List.Item
               actions={[
-                <Typography.Text type="secondary">
+                <Typography.Text key="time" type="secondary">
                   {new Date(item.createdAt).toLocaleString("vi-VN")}
                 </Typography.Text>,
                 <Button

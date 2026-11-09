@@ -14,6 +14,10 @@ const items = [
     key: "/ocr",
     label: "Ảnh sang chuỗi",
   },
+  {
+    key: "/base64",
+    label: "Ảnh sang Base64",
+  },
 ];
 
 function MyPage() {

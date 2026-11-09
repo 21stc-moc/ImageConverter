@@ -21,8 +21,12 @@ import {
   FaImage,
 } from "react-icons/fa6";
 import { pythonService } from "../services/pythonService";
-import { addConvertedFile } from "../store/convertedFilesSlice";
-import { useDispatch } from "react-redux";
+import {
+  deleteConvertedFile,
+  saveConvertedFile,
+} from "../store/convertedFilesSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { downloadConvertedFile, formatBytes } from "../utils/download";
 
 const { useBreakpoint } = Grid;
 
@@ -69,6 +73,28 @@ function ImageConvert() {
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [convertType, setConvertType] = useState(".png");
+  // id các file được chuyển đổi trong lần mở trang này (mới nhất trước)
+  const [recentIds, setRecentIds] = useState([]);
+
+  // Lấy từ store để đồng bộ khi file bị xoá ở "Danh sách đã chuyển đổi"
+  const convertedItems = useSelector((state) => state.convertedFiles.items);
+  const recentItems = recentIds
+    .map((id) => convertedItems.find((item) => item.id === id))
+    .filter(Boolean);
+
+  const addResult = (item, blob) => {
+    dispatch(saveConvertedFile(item, blob));
+    setRecentIds((prev) => [item.id, ...prev]);
+  };
+
+  const onDownload = (item) => {
+    try {
+      downloadConvertedFile(item);
+    } catch (error) {
+      console.error("Lỗi khi tải file:", error);
+      message.error("Tải file thất bại");
+    }
+  };
 
   const onConvert = async () => {
     try {
@@ -90,8 +116,8 @@ function ImageConvert() {
         const url = window.URL.createObjectURL(blob);
         const name = `converted_${Date.now()}.zip`;
 
-        dispatch(
-          addConvertedFile({
+        addResult(
+          {
             id: genId(),
             name,
             url,
@@ -100,7 +126,8 @@ function ImageConvert() {
             originalName: `${fileList.length} tệp`,
             isZip: true,
             createdAt: Date.now(),
-          }),
+          },
+          blob,
         );
       } else {
         const file = fileList[0];
@@ -117,8 +144,8 @@ function ImageConvert() {
           file.name.split(".").slice(0, -1).join(".") || file.name;
         const name = baseName + convertType;
 
-        dispatch(
-          addConvertedFile({
+        addResult(
+          {
             id: genId(),
             name,
             url,
@@ -127,11 +154,12 @@ function ImageConvert() {
             originalName: file.name,
             isZip: false,
             createdAt: Date.now(),
-          }),
+          },
+          blob,
         );
       }
 
-      message.success("Chuyển đổi thành công, file đã được lưu vào danh sách");
+      message.success("Chuyển đổi thành công");
     } catch (err) {
       console.error(err);
       message.error("Chuyển đổi thất bại");
@@ -233,6 +261,83 @@ function ImageConvert() {
             </Button>
           </Flex>
         </Flex>
+      )}
+
+      {recentItems.length > 0 && (
+        <List
+          bordered
+          header={
+            <Flex align="center" justify="space-between">
+              <Typography.Text strong>Kết quả chuyển đổi</Typography.Text>
+              <Typography.Text type="secondary">
+                Đã lưu vào "Danh sách đã chuyển đổi"
+              </Typography.Text>
+            </Flex>
+          }
+          dataSource={recentItems}
+          style={{ backgroundColor: "#fff" }}
+          renderItem={(item) => (
+            <List.Item
+              actions={[
+                <Button
+                  key="download"
+                  type="primary"
+                  icon={<FaDownload />}
+                  onClick={() => onDownload(item)}>
+                  {!screens.xs && "Tải xuống"}
+                </Button>,
+                <Popconfirm
+                  key="remove"
+                  title="Xoá khỏi danh sách?"
+                  okText="Xoá"
+                  cancelText="Huỷ"
+                  onConfirm={() => dispatch(deleteConvertedFile(item))}>
+                  <Button color="danger" variant="filled" icon={<FaTrash />} />
+                </Popconfirm>,
+              ]}>
+              <List.Item.Meta
+                avatar={
+                  item.isZip ? (
+                    <Flex
+                      align="center"
+                      justify="center"
+                      style={{ width: 56, height: 56 }}>
+                      <FaFileZipper size={32} />
+                    </Flex>
+                  ) : (
+                    <img
+                      src={item.url}
+                      alt={item.name}
+                      style={{
+                        width: 56,
+                        height: 56,
+                        objectFit: "contain",
+                        borderRadius: 6,
+                        border: "1px solid #f0f0f0",
+                        // nền caro để thấy rõ vùng trong suốt
+                        background:
+                          "repeating-conic-gradient(#eee 0 25%, #fff 0 50%) 0 0 / 12px 12px",
+                      }}
+                    />
+                  )
+                }
+                title={
+                  <Flex align="center" gap="small" wrap>
+                    <Typography.Text strong ellipsis style={{ maxWidth: 260 }}>
+                      {item.name}
+                    </Typography.Text>
+                    <Tag>{formatBytes(item.size)}</Tag>
+                  </Flex>
+                }
+                description={
+                  <Typography.Text type="secondary" ellipsis>
+                    Từ: {item.originalName}
+                  </Typography.Text>
+                }
+              />
+            </List.Item>
+          )}
+        />
       )}
     </Flex>
   );

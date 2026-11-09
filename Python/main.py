@@ -5,7 +5,7 @@ import service
 
 app = FastAPI()
 #Enable CORS
-origins = [ "http://localhost:5173", "http://192.168.2.197:2100" ]
+origins = [ "http://localhost:5173", "http://192.168.2.197:2100", "http://192.168.2.197:1057" ]
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,7 +19,7 @@ app.include_router(service.router)
 
 @app.get("/")
 async def main():
-    return {"message": "NVTOON FastAPI Service"}
+    return {"message": "FastAPI Service"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

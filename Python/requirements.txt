@@ -3,7 +3,6 @@ uvicorn
 Pillow
 python-multipart
 resvg-py
-mangum
 
 # OCR engine — chỉ dùng EasyOCR cho cả 4 ngôn ngữ (vi/en/ja/ch_sim/ch_tra)
 easyocr>=1.7.0,<2.0
