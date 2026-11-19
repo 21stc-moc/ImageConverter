@@ -80,7 +80,6 @@ function ConvertedList() {
           bordered
           dataSource={convertedItems}
           itemLayout="vertical"
-          style={{ backgroundColor: "#fff", minWidth: 400 }}
           renderItem={(item) => (
             <List.Item
               actions={[

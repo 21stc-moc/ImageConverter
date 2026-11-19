@@ -11,7 +11,7 @@ import {
 function HomePage() {
   return (
     <Row gutter={[30, 30]}>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Card
           style={{ height: "100%" }}
           title={
@@ -27,7 +27,7 @@ function HomePage() {
           </p>
         </Card>
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Card
           title={
             <Flex align="center" gap="small">
@@ -43,7 +43,7 @@ function HomePage() {
           </p>
         </Card>
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Card
           style={{ height: "100%" }}
           title={
@@ -62,8 +62,8 @@ function HomePage() {
       </Col>
       <Col span={24}>
         <Card title="Dữ liệu của bạn, Ưu tiên của chúng tôi">
-          <Row gutter={40}>
-            <Col span={16}>
+          <Row gutter={[40, 32]}>
+            <Col xs={24} lg={16}>
               <p>
                 Chúng tôi không chỉ chuyển đổi tệp—chúng tôi còn bảo vệ chúng.
                 Khung bảo mật mạnh mẽ của chúng tôi đảm bảo rằng dữ liệu của bạn
@@ -73,7 +73,7 @@ function HomePage() {
                 của bạn.
               </p>
             </Col>
-            <Col span={8}>
+            <Col xs={24} lg={8}>
               <Space orientation="vertical" size="middle">
                 <Space size="medium">
                   <FaExpeditedssl size={24} />
